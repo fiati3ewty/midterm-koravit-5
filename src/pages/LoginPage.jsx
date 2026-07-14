@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import api from '../api/mainApi';
 import { useUserStore } from '../stores/userStore';
 import { toast } from 'react-toastify';
+import { loginSchemas } from '../schemas/loginSchemas';
 
 function LoginPage() {
   const [formLogin, setFormLogin] = useState({
@@ -23,9 +24,21 @@ function LoginPage() {
   const hdlLogin = async (e) => {
     e.preventDefault();
 
+    const validateResult = loginSchemas.safeParse(formLogin);
+    if (!validateResult.success) {
+      const { username, password } = validateResult.error.flatten().fieldErrors;
+      if (username) {
+        toast.error(username[0]);
+      }
+      if (password) {
+        toast.error(password[0]);
+      }
+      return;
+    }
+
     try {
       const res = await api.post('/auth/login', formLogin);
-      console.log('Login', res.data.user);
+      // console.log('Login', res.data.user);
       const { username, token } = res.data.user;
       setUsername(username);
       setToken(token);
